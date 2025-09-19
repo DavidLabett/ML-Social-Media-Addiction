@@ -45,11 +45,8 @@ if page == "Machine Learning":
     </div>
     """, unsafe_allow_html=True)
 
-    #st.markdown("---")
     st.markdown("<br>", unsafe_allow_html=True)
-    #st.markdown("##### Basic Information:")
     age = st.number_input('What is your age?', min_value=8, max_value=100, value=18)
-    #gender = st.radio('Gender', options=['Male', 'Female'], index=0, horizontal=True)
 
     st.subheader("Take a moment to reflect on your habits:")
     avg_daily_usage = st.slider('Average daily usage of social media platforms (hours)', min_value=0.0, max_value=12.0, value=0.0, step=0.5)
@@ -64,13 +61,10 @@ if page == "Machine Learning":
     with st.form("ml_form"):
         # Prepare input as DataFrame (order must match training data)
         input_dict = {
-            #'Age': [age], #TODO: Map to sleep recommendation by age
             'Avg_Daily_Usage_Hours': [avg_daily_usage],
             'Sleep_Hours_Per_Night': [sleep_hours],
             'Mental_Health_Score': [mental_health],
             'Conflicts_Over_Social_Media': [conflicts],
-            #'Gender_Female': [1 if gender == 'Female' else 0], # Drop?
-            #'Gender_Male': [1 if gender == 'Male' else 0], # Drop?
             'Affects_Academic_Performance_No': [1 if affects_academic == 'No' else 0],
             'Affects_Academic_Performance_Yes': [1 if affects_academic == 'Yes' else 0],
             'Relationship_Status_Complicated': [1 if relationship_status == 'Complicated' else 0],
@@ -91,17 +85,18 @@ if page == "Machine Learning":
                 </div>
             """, unsafe_allow_html=True)
 
-            # --- Visualization Section ---
-            # Load your dataset (adjust path as needed)
+            # ------------------------------------------ Visualization Section ---------------------------------------------#
             df = pd.read_csv("Students_Social_Media_Addiction.csv")
+            
             # Calculate means
             mean_usage = df['Avg_Daily_Usage_Hours'].mean()
             mean_sleep = df['Sleep_Hours_Per_Night'].mean()
             mean_mental = df['Mental_Health_Score'].mean()
             mean_conflicts = df['Conflicts_Over_Social_Media'].mean()
 
-            st.subheader("How You Compare to the Dataset:")
-            # Horizontal grouped bar plot for user vs mean
+            st.subheader("How You Compare To The Dataset Means:")
+            
+            # Horizontal grouped bar plot for user-input vs mean
             fig2, ax2 = plt.subplots(figsize=(8, 4))
             metrics = ['Avg_Daily_Usage_Hours', 'Sleep_Hours_Per_Night', 'Mental_Health_Score', 'Conflicts_Over_Social_Media']
             user_vals = [avg_daily_usage, sleep_hours, mental_health, conflicts]
@@ -119,7 +114,7 @@ if page == "Machine Learning":
             st.pyplot(fig2)
 
             # Sleep Hours Per Night - detailed plot
-            st.subheader("Sleep Hours Per Night vs. Dataset & Recommendations")
+            st.subheader("Comparing Sleep Statistics:")
             fig, ax = plt.subplots(figsize=(10, 5))
             sns.histplot(
                 df[(df['Age'] >= 18) & (df['Age'] <= 25)]['Sleep_Hours_Per_Night'],
@@ -135,13 +130,17 @@ if page == "Machine Learning":
             ax.legend()
             st.pyplot(fig)
             st.markdown("""
-            <div style="font-size:15px;">
-              <b>Sleep Analytics:</b><br>
-              To put The National Sleep Foundation’s (NSF’s) mission is to improve health and well-being through sleep health education and advocacy. The NSF provides the public with the most up-to-date, scientifically rigorous sleep health recommendations. 
-              <br>
+            <div style="font-size:16px; margin-bottom: 15px;">
+              <b>Recommended Sleep Analytics:</b><br>
+              This graph shows a comparison of your sleep hours to the dataset and the National Sleep Foundation’s recommendations (<span style="color:lightgreen;">inside the green span</span>). This is to help you further understand how your habits align with scientific guidelines for healthy sleep.
+              <br><br>
+              <span style="margin-top: 18px; display: inline-block;">
+              Read more about
               <a href="https://www.sleephealthjournal.org/article/s2352-7218(15)00015-7/fulltext" target="_blank">
-                Read more about NSF sleep recommendations
+              NSF sleep recommendations
               </a>
+              .
+              </span>
             </div>
             """, unsafe_allow_html=True)
 
