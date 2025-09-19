@@ -7,27 +7,45 @@ import pandas as pd
 model = joblib.load('Social_Media_Addiction_Classifier.pkl')
 
 def map_addicted_score_to_grade(score):
-    bins = [1, 4.5, 7.8, 10]
+    bins = [1.0, 4.5, 7.8, 10.0]
     labels = ['Low', 'Medium', 'High']
+    
+    score = max(min(score, 10.0), 1.0)
     return pd.cut([score], bins=bins, labels=labels, include_lowest=True)[0]
 
 #-----------------------------------------------------------------------------#
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("You are here:", ["Machine Learning Prediction", "Bergen Scale", "ReadMe"])
+page = st.sidebar.radio("Go to:", ["Machine Learning", "Bergen Scale", "ReadMe"])
 
-if page == "Machine Learning Prediction":
+if page == "Machine Learning":
     st.title("Predict Social Media Addiction Using Machine Learning")
-    st.markdown('''
-    This application predicts your level of social media addiction based on your answers to a set of questions. Fill out the form below to get a risk prediction: | <span style="color:green">Low</span> | <span style="color:orange">Medium</span> | <span style="color:red">High</span> |
+    st.markdown("""
+    <div style="font-size:16px;">
+      <p>
+        This application predicts your level of social media addiction based on your responses to a set of questions.
+        The prediction is made using a machine learning model trained on real-world data.
+      </p>
+      <p>
+        <b>Note:</b> Scoring is based on <a href="https://hub.salford.ac.uk/psytech/2021/08/10/bergen-social-media-addiction-scale/" target="_blank">The Bergen Social Media Addiction Scale</a>, which is available on a separate page for further self-assessment.
+      </p>
+      <p>
+        <b>Curious about the data used to train the model? </b>
+        <a href="https://www.kaggle.com/datasets/adilshamim8/social-media-addiction-vs-relationships" target="_blank">
+           [ View the dataset on Kaggle ] 
+        </a>
+      </p>
+      <hr>
+      <h4>
+        <b>Fill out the form to get a risk prediction</b> | <span style="color:green;">Low</span> | <span style="color:orange;">Medium</span> | <span style="color:red;">High</span> |
+      </h4>
+    </div>
+    """, unsafe_allow_html=True)
 
-    <br>If you are curious, and want to read more the data used to train the model: [Click Here](https://www.kaggle.com/datasets/adilshamim8/social-media-addiction-vs-relationships)
-    ''', unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    st.subheader('Basic Information:')
+    #st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
+    #st.markdown("##### Basic Information:")
     age = st.number_input('What is your age?', min_value=8, max_value=100, value=18)
     gender = st.radio('Gender', options=['Male', 'Female'], index=0, horizontal=True)
 
@@ -60,64 +78,44 @@ if page == "Machine Learning Prediction":
         X_input = pd.DataFrame(input_dict)
         pred = model.predict(X_input)[0]
         label_map = {1: 'Low', 2: 'Medium', 3: 'High'}
-        submitted = st.form_submit_button("Predict ML Grade")
+        submitted = st.form_submit_button("Predict Addiction Grade")
         if submitted:
-            st.success(f'Your predicted addiction grade is: {label_map.get(pred, pred)}')
-
-    # Bergen Social Media Addiction Scale in a collapsible area
-    with st.expander("Bergen Social Media Addiction Scale Questionnaire"):
-        st.subheader('Bergen Social Media Addiction Scale:')
-        st.markdown('''
-        <span style="color:lightgreen">
-        Here are six statements to consider. For each, indicate how often it applies to you:
-        <br><strong>(1) Very rarely, (2) Rarely, (3) Sometimes, (4) Often, (5) Very often<strong>
-        </span>
-        ''', unsafe_allow_html=True)
-
-        st.markdown('---')
-
-        bergen_qs = [
-            "You spend a lot of time thinking about social media or planning how to use it.",
-            "You feel an urge to use social media more and more.",
-            "You use social media in order to forget about personal problems.",
-            "You have tried to cut down on the use of social media without success.",
-            "You become restless or troubled if you are prohibited from using social media.",
-            "You use social media so much that it has had a negative impact on your job/studies."
-        ]
-        bergen_answers = []
-        for i, q in enumerate(bergen_qs, 1):
-          ans = st.slider(f'{i}. {q}', min_value=1, max_value=5, value=1, key=f'bergen_{i}')
-          bergen_answers.append(ans)
-
-        # Calculate Bergen score and scale
-        addicted_score = sum(bergen_answers) / 3
-
-        # After calculating addicted_score from the questionnaire:
-        addicted_grade = map_addicted_score_to_grade(addicted_score)
-        st.write(f"Your Bergen Social Media Addiction Scale score: {addicted_score}")
-        st.write(f"Addiction grade (Bergen scale): {addicted_grade}")
-
-        if st.button("Predict Bergen Grade"):
-            addicted_grade = map_addicted_score_to_grade(addicted_score)
-            st.write(f"Your Bergen Social Media Addiction Scale score: {addicted_score}")
-            st.write(f"Addiction grade (Bergen scale): {addicted_grade}")
+            ml_grade = label_map.get(pred, pred)
+            color_map = {"Low": "#6a9c6a", "Medium": "#c2b546", "High": "#c91818"}
+            color = color_map.get(str(ml_grade), "#f0f0f0")
+            st.markdown(f"""
+                <div style='background-color: {color}; padding: 1.2em; margin-bottom: 15px; border-radius: 10px; text-align: center; font-size: 1.3em; font-weight: bold;'>
+                    {ml_grade}
+                </div>
+            """, unsafe_allow_html=True)
 
 elif page == "Bergen Scale":
-    st.title("Bergen Social Media Addiction Scale")
-    st.write("Answer the Bergen scale questions below:")
-    bergen_q1 = st.slider("How often do you spend a lot of time thinking about social media or planning how to use it?", 1, 5, 1)
-    bergen_q2 = st.slider("How often do you feel an urge to use social media more and more?", 1, 5, 1)
-    bergen_q3 = st.slider("How often do you use social media in order to forget about personal problems?", 1, 5, 1)
-    bergen_q4 = st.slider("How often have you tried to cut down on the use of social media without success?", 1, 5, 1)
-    bergen_q5 = st.slider("How often do you become restless or troubled if you are prohibited from using social media?", 1, 5, 1)
-    bergen_q6 = st.slider("How often do you use social media so much that it has had a negative impact on your job/studies?", 1, 5, 1)
+    st.header("Bergen Social Media Addiction Scale")
+    st.markdown("##### Here are six statements to consider. For each, answer:")
+    st.markdown("""
+    | <span style="color:green;">(1) very rarely</span> 
+    | <span style="color:#FFFFE0;">(2) rarely</span> 
+    | <span style="color:yellow;">(3) sometimes</span> 
+    | <span style="color:orange;">(4) often</span> 
+    | <span style="color:red;">(5) very often</span> |
+    """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    bergen_q1 = st.slider("You spend a lot of time thinking about social media or planning how to use it.", 1, 5, 1)
+    bergen_q2 = st.slider("You feel an urge to use social media more and more.", 1, 5, 1)
+    bergen_q3 = st.slider("You use social media in order to forget about personal problems.", 1, 5, 1)
+    bergen_q4 = st.slider("You have tried to cut down on the use of social media without success.", 1, 5, 1)
+    bergen_q5 = st.slider("You become restless or troubled if you are prohibited from using social media.", 1, 5, 1)
+    bergen_q6 = st.slider("You use social media so much that it has had a negative impact on your job/studies.", 1, 5, 1)
 
     bergen_responses = [bergen_q1, bergen_q2, bergen_q3, bergen_q4, bergen_q5, bergen_q6]
-    addicted_score = sum(bergen_responses)
+    addicted_score = sum(bergen_responses) / 3
+    bergen_score = sum(bergen_responses)
     if st.button("Predict Bergen Grade"):
         addicted_grade = map_addicted_score_to_grade(addicted_score)
-        st.write(f"Your Bergen Social Media Addiction Scale score: {addicted_score}")
-        st.write(f"Addiction grade (Bergen scale): {addicted_grade}")
+        st.write(f"Your Bergen Social Media Addiction Scale score: {bergen_score}")
+        st.write(f"Addiction grade (Bergen scale): {addicted_grade if pd.notna(addicted_grade) else 'Out of range'}")
 
 elif page == "ReadMe":
     st.title("ReadMe")
