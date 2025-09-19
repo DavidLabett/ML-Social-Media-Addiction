@@ -2,9 +2,11 @@ import streamlit as st
 import joblib
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Load the trained model
-model = joblib.load('Social_Media_Addiction_Classifier.pkl')
+model = joblib.load('Social_Media_Addiction_Classifier2.pkl')
 
 def map_addicted_score_to_grade(score):
     bins = [1.0, 4.5, 7.8, 10.0]
@@ -47,7 +49,7 @@ if page == "Machine Learning":
     st.markdown("<br>", unsafe_allow_html=True)
     #st.markdown("##### Basic Information:")
     age = st.number_input('What is your age?', min_value=8, max_value=100, value=18)
-    gender = st.radio('Gender', options=['Male', 'Female'], index=0, horizontal=True)
+    #gender = st.radio('Gender', options=['Male', 'Female'], index=0, horizontal=True)
 
     st.subheader("Take a moment to reflect on your habits:")
     avg_daily_usage = st.slider('Average daily usage of social media platforms (hours)', min_value=0.0, max_value=12.0, value=0.0, step=0.5)
@@ -62,13 +64,13 @@ if page == "Machine Learning":
     with st.form("ml_form"):
         # Prepare input as DataFrame (order must match training data)
         input_dict = {
-            'Age': [age], #TODO: Map to sleep recommendation by age
+            #'Age': [age], #TODO: Map to sleep recommendation by age
             'Avg_Daily_Usage_Hours': [avg_daily_usage],
             'Sleep_Hours_Per_Night': [sleep_hours],
             'Mental_Health_Score': [mental_health],
             'Conflicts_Over_Social_Media': [conflicts],
-            'Gender_Female': [1 if gender == 'Female' else 0], # Drop?
-            'Gender_Male': [1 if gender == 'Male' else 0], # Drop?
+            #'Gender_Female': [1 if gender == 'Female' else 0], # Drop?
+            #'Gender_Male': [1 if gender == 'Male' else 0], # Drop?
             'Affects_Academic_Performance_No': [1 if affects_academic == 'No' else 0],
             'Affects_Academic_Performance_Yes': [1 if affects_academic == 'Yes' else 0],
             'Relationship_Status_Complicated': [1 if relationship_status == 'Complicated' else 0],
@@ -87,6 +89,60 @@ if page == "Machine Learning":
                 <div style='background-color: {color}; padding: 1.2em; margin-bottom: 15px; border-radius: 10px; text-align: center; font-size: 1.3em; font-weight: bold;'>
                     {ml_grade}
                 </div>
+            """, unsafe_allow_html=True)
+
+            # --- Visualization Section ---
+            # Load your dataset (adjust path as needed)
+            df = pd.read_csv("Students_Social_Media_Addiction.csv")
+            # Calculate means
+            mean_usage = df['Avg_Daily_Usage_Hours'].mean()
+            mean_sleep = df['Sleep_Hours_Per_Night'].mean()
+            mean_mental = df['Mental_Health_Score'].mean()
+            mean_conflicts = df['Conflicts_Over_Social_Media'].mean()
+
+            st.subheader("How You Compare to the Dataset:")
+            # Horizontal grouped bar plot for user vs mean
+            fig2, ax2 = plt.subplots(figsize=(8, 4))
+            metrics = ['Avg_Daily_Usage_Hours', 'Sleep_Hours_Per_Night', 'Mental_Health_Score', 'Conflicts_Over_Social_Media']
+            user_vals = [avg_daily_usage, sleep_hours, mental_health, conflicts]
+            mean_vals = [mean_usage, mean_sleep, mean_mental, mean_conflicts]
+            bar_width = 0.35
+            y_pos = np.arange(len(metrics))
+            ax2.barh(y_pos - bar_width/2, user_vals, bar_width, label='You', color='#4e79a7')
+            ax2.barh(y_pos + bar_width/2, mean_vals, bar_width, label='Dataset', alpha=0.6, color="#e05555")
+            ax2.set_yticks(y_pos)
+            ax2.set_yticklabels(metrics)
+            ax2.invert_yaxis()
+            ax2.set_xlabel('Value')
+            ax2.set_title('Your Input vs Dataset Mean')
+            ax2.legend()
+            st.pyplot(fig2)
+
+            # Sleep Hours Per Night - detailed plot
+            st.subheader("Sleep Hours Per Night vs. Dataset & Recommendations")
+            fig, ax = plt.subplots(figsize=(10, 5))
+            sns.histplot(
+                df[(df['Age'] >= 18) & (df['Age'] <= 25)]['Sleep_Hours_Per_Night'],
+                color='lightgrey', kde=True, alpha=0.4, ax=ax
+            )
+            ax.axvline(7, color='green', linestyle='dashed')
+            ax.axvline(9, color='green', linestyle='dashed')
+            ax.axvspan(7, 9, color='green', alpha=0.15, label='Recommended Range (7-9h)')
+            ax.axvline(mean_sleep, color='red', linestyle='dashed', label=f"Dataset: {mean_sleep:.2f}")
+            ax.axvline(sleep_hours, color='blue', linestyle='dashed', linewidth=2, label=f"You: {sleep_hours}")
+            ax.set_xlabel('Sleep Hours Per Night')
+            ax.set_title('Sleep Hours Distribution & NSF Recommendation')
+            ax.legend()
+            st.pyplot(fig)
+            st.markdown("""
+            <div style="font-size:15px;">
+              <b>Sleep Analytics:</b><br>
+              To put The National Sleep Foundation’s (NSF’s) mission is to improve health and well-being through sleep health education and advocacy. The NSF provides the public with the most up-to-date, scientifically rigorous sleep health recommendations. 
+              <br>
+              <a href="https://www.sleephealthjournal.org/article/s2352-7218(15)00015-7/fulltext" target="_blank">
+                Read more about NSF sleep recommendations
+              </a>
+            </div>
             """, unsafe_allow_html=True)
 
 elif page == "Bergen Scale":
