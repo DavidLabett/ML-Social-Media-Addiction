@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Load the trained model
+# Load trained model
 model = joblib.load('Social_Media_Addiction_Classifier2.pkl')
 
 def map_addicted_score_to_grade(score):
@@ -15,7 +15,7 @@ def map_addicted_score_to_grade(score):
     score = max(min(score, 10.0), 1.0)
     return pd.cut([score], bins=bins, labels=labels, include_lowest=True)[0]
 
-#-----------------------------------------------------------------------------#
+#------------------------------------------------------- Main Page & Input_Dict for Model ---------------------------------------------------------------#
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
@@ -28,6 +28,9 @@ if page == "Machine Learning":
       <p>
         This application predicts your level of social media addiction based on your responses to a set of questions.
         The prediction is made using a machine learning model trained on real-world data.
+      </p>
+      <p>
+        In addition, visualizations allow for the Respondent to compare their responses to the average values in the dataset, as well as scientific recommendations for healthy sleep. This provides a deeper insight into your own habits - by viewing them in a broader context.
       </p>
       <p>
         <b>Note:</b> Scoring is based on <a href="https://hub.salford.ac.uk/psytech/2021/08/10/bergen-social-media-addiction-scale/" target="_blank">The Bergen Social Media Addiction Scale</a>, which is available on a separate page for further self-assessment.
@@ -49,10 +52,10 @@ if page == "Machine Learning":
     age = st.number_input('What is your age?', min_value=8, max_value=100, value=18)
 
     st.subheader("Take a moment to reflect on your habits:")
-    avg_daily_usage = st.slider('Average daily usage of social media platforms (hours)', min_value=0.0, max_value=12.0, value=0.0, step=0.5)
-    sleep_hours = st.slider('Average sleep hours per night', min_value=0.0, max_value=12.0, value=0.0, step=0.5)
-    mental_health = st.slider('Mental health score (1 = Poor, 10 = Excellent)', 1, 10, 0, step=1)
-    conflicts = st.slider('Average number of conflicts over social media', min_value=0, max_value=10, value=0, step=1)
+    avg_daily_usage = st.slider('Average daily usage of social media platforms (hours):', min_value=0.0, max_value=12.0, value=0.0, step=0.5)
+    sleep_hours = st.slider('Average sleep hours per night:', min_value=0.0, max_value=12.0, value=0.0, step=0.5)
+    mental_health = st.slider('Self-assess your mental health: | 1 = Poor | 10 = Excellent |', 1, 10, 0, step=1)
+    conflicts = st.slider('Averagee number of arguments/disagreements with family, friends, or partners due to social media use:', min_value=0, max_value=8, value=0, step=1)
     affects_academic = st.radio('Does your social media usage affect your academic results?', options=['Yes', 'No'], index=1, horizontal=True)
     relationship_status = st.radio('What is your relationship status?', options=['Single', 'In Relationship', 'Complicated'], index=0, horizontal=True)
 
@@ -85,7 +88,8 @@ if page == "Machine Learning":
                 </div>
             """, unsafe_allow_html=True)
 
-            # ------------------------------------------ Visualization Section ---------------------------------------------#
+#-------------------------------------------------- Visualization Section ---------------------------------------------------#
+
             df = pd.read_csv("Students_Social_Media_Addiction.csv")
             
             # Calculate means
@@ -103,7 +107,7 @@ if page == "Machine Learning":
             mean_vals = [mean_usage, mean_sleep, mean_mental, mean_conflicts]
             bar_width = 0.35
             y_pos = np.arange(len(metrics))
-            ax2.barh(y_pos - bar_width/2, user_vals, bar_width, label='You', color='#4e79a7')
+            ax2.barh(y_pos - bar_width/2, user_vals, bar_width, label='You', color="#245e9b")
             ax2.barh(y_pos + bar_width/2, mean_vals, bar_width, label='Dataset', alpha=0.6, color="#e05555")
             ax2.set_yticks(y_pos)
             ax2.set_yticklabels(metrics)
@@ -126,7 +130,7 @@ if page == "Machine Learning":
             ax.axvline(mean_sleep, color='red', linestyle='dashed', label=f"Dataset: {mean_sleep:.2f}")
             ax.axvline(sleep_hours, color='blue', linestyle='dashed', linewidth=2, label=f"You: {sleep_hours}")
             ax.set_xlabel('Sleep Hours Per Night')
-            ax.set_title('Sleep Hours Distribution & NSF Recommendation')
+            ax.set_title('Sleep Hours vs Scientific Recommendations')
             ax.legend()
             st.pyplot(fig)
             st.markdown("""
@@ -144,15 +148,19 @@ if page == "Machine Learning":
             </div>
             """, unsafe_allow_html=True)
 
+#----------------------------------------------- Bergen Social Media Addiction Scale ------------------------------------------------#
+
 elif page == "Bergen Scale":
     st.header("Bergen Social Media Addiction Scale")
-    st.markdown("##### Here are six statements to consider. For each, answer:")
+    st.markdown("#### Here are six statements to consider. For each, answer:")
     st.markdown("""
+    <h5>
     | <span style="color:green;">(1) very rarely</span> 
     | <span style="color:#FFFFE0;">(2) rarely</span> 
     | <span style="color:yellow;">(3) sometimes</span> 
     | <span style="color:orange;">(4) often</span> 
     | <span style="color:red;">(5) very often</span> |
+    </h5>
     """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -172,14 +180,23 @@ elif page == "Bergen Scale":
         st.write(f"Your Bergen Social Media Addiction Scale score: {bergen_score}")
         st.write(f"Addiction grade (Bergen scale): {addicted_grade if pd.notna(addicted_grade) else 'Out of range'}")
 
+#------------------------------------------------------------ ReadMe --------------------------------------------------------------#
+
 elif page == "ReadMe":
     st.title("ReadMe")
     st.markdown("""
-    # Social Media Addiction App
-    
-    - **Main:** Predict addiction grade using the ML model (excluding Bergen scale score).
-    - **Bergen Scale:** Self-assessment using the Bergen Social Media Addiction Scale.
-    - **Readme:** Project info and instructions.
-    
-    *Add your own documentation here!*
-    """)
+  ### Predict Social Media Addiction Using Machine Learning
+
+  This project analyzes the dataset [Students' Social Media Addiction](https://www.kaggle.com/datasets/adilshamim8/social-media-addiction-vs-relationships) to explore patterns and predictors of social media addiction among students.
+
+  The analysis provides insights into how daily usage, sleep, mental health, and demographics relate to social media addiction.
+
+  The Machine Learning models trained are meant to explore if any predictions could be made for risk groups, helping to identify students who may be at higher risk of social media addiction.
+
+  ---
+
+  - **Machine Learning:** Predict addiction grade using a trained machine learning model.
+  - **[Bergen Social Media Addiction Scale](https://hub.salford.ac.uk/psytech/2021/08/10/bergen-social-media-addiction-scale/):** Self-assessment using the Bergen Social Media Addiction Scale.
+  - **ReadMe:** Project info.
+
+  """)
